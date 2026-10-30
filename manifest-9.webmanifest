@@ -1,0 +1,21 @@
+{
+  "name": "SHINWA QR ×9",
+  "short_name": "SHINWA QR 9",
+  "start_url": "./nine.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e6a73",
+  "theme_color": "#0e6a73",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
