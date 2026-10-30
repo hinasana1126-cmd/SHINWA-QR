@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SHINWA QR</title>
-<meta name="description" content="4桁の数字を入れると、SHINWAに続けた文字列のQRコードを表示します。">
+<meta name="description" content="4桁の数字を2つ入れると、SHINWAに続けた文字列のQRコードを上下に2つ表示します。">
 <meta name="theme-color" content="#0e6a73">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <style>
-/* Layout: one narrow column. Input on top, QR card in the middle, encoded text and copy button last. */
+/* Layout: one narrow column. Two inputs on top, then two QR blocks stacked (QR card, encoded text, copy button). */
 :root {
   --bg: #eef2f2;
   --surface: #ffffff;
@@ -94,7 +94,7 @@ label.field-label { display: block; margin-bottom: 8px; font-size: 0.85rem; font
   letter-spacing: 0.08em;
   border-right: 2px solid var(--line);
 }
-#num {
+.num {
   flex: 1;
   min-width: 0;
   border: 0;
@@ -106,10 +106,11 @@ label.field-label { display: block; margin-bottom: 8px; font-size: 0.85rem; font
   letter-spacing: 0.22em;
   padding: 12px 14px;
 }
-#num::placeholder { color: var(--line); }
-#num:focus { outline: none; }
+.num::placeholder { color: var(--line); }
+.num:focus { outline: none; }
 
-.status { margin: 8px 0 0; min-height: 1.6em; font-size: 0.9rem; color: var(--muted); }
+.inputs { display: flex; flex-direction: column; gap: 14px; }
+.status { margin: 6px 0 0; min-height: 1.6em; font-size: 0.9rem; color: var(--muted); }
 .status[data-state="ok"] { color: var(--accent); font-weight: 700; }
 
 .qr-card {
@@ -121,7 +122,9 @@ label.field-label { display: block; margin-bottom: 8px; font-size: 0.85rem; font
   display: grid;
   place-items: center;
 }
-.qr-card img { display: block; width: 100%; max-width: 340px; height: auto; aspect-ratio: 1; border-radius: 4px; transition: opacity .2s; }
+.qr-block { display: flex; flex-direction: column; gap: 10px; }
+.qr-title { margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
+.qr-card img { display: block; width: 100%; max-width: 300px; height: auto; aspect-ratio: 1; border-radius: 4px; transition: opacity .2s; }
 .qr-card.is-sample img { opacity: 0.18; }
 .sample-badge {
   position: absolute;
@@ -182,29 +185,53 @@ body {
 <main>
   <header>
     <h1>SHINWA QR</h1>
-    <p class="lead">4桁の数字を入れると、SHINWAに続けた文字列のQRが出ます。</p>
+    <p class="lead">4桁の数字を2つ入れると、SHINWAに続けた文字列のQRが上下に出ます。</p>
   </header>
 
-  <section>
-    <label class="field-label" for="num">4桁の数字</label>
-    <div class="field">
-      <span class="prefix" aria-hidden="true">SHINWA</span>
-      <input id="num" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="0000" aria-describedby="status">
+  <section class="inputs">
+    <div class="slot-input" data-slot="0">
+      <label class="field-label" for="num1">1つ目の数字（4桁）</label>
+      <div class="field">
+        <span class="prefix" aria-hidden="true">SHINWA</span>
+        <input class="num" id="num1" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="0000" aria-describedby="status1">
+      </div>
+      <p class="status" id="status1" role="status" aria-live="polite"></p>
     </div>
-    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <div class="slot-input" data-slot="1">
+      <label class="field-label" for="num2">2つ目の数字（4桁）</label>
+      <div class="field">
+        <span class="prefix" aria-hidden="true">SHINWA</span>
+        <input class="num" id="num2" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="0000" aria-describedby="status2">
+      </div>
+      <p class="status" id="status2" role="status" aria-live="polite"></p>
+    </div>
   </section>
 
-  <section class="qr-card is-sample" id="card" aria-label="QRコード">
-    <img id="qr" alt="入力例のQRコード（SHINWA0000）" width="640" height="640">
-    <div class="sample-badge" id="badge">入力例<br>SHINWA0000</div>
+  <section class="qr-block" data-slot="0" aria-label="1つ目のQRコード">
+    <p class="qr-title">1つ目</p>
+    <div class="qr-card is-sample">
+      <img alt="入力例のQRコード（SHINWA0000）" width="640" height="640">
+      <div class="sample-badge">入力例<br>SHINWA0000</div>
+    </div>
+    <div class="result">
+      <p class="code is-empty">SHINWA____</p>
+      <button class="copy" type="button" disabled>コピー</button>
+    </div>
   </section>
 
-  <section class="result">
-    <p class="code is-empty" id="code">SHINWA____</p>
-    <button class="copy" id="copy" type="button" disabled>コピー</button>
+  <section class="qr-block" data-slot="1" aria-label="2つ目のQRコード">
+    <p class="qr-title">2つ目</p>
+    <div class="qr-card is-sample">
+      <img alt="入力例のQRコード（SHINWA0000）" width="640" height="640">
+      <div class="sample-badge">入力例<br>SHINWA0000</div>
+    </div>
+    <div class="result">
+      <p class="code is-empty">SHINWA____</p>
+      <button class="copy" type="button" disabled>コピー</button>
+    </div>
   </section>
 
-  <p class="hint" id="hint">QR画像は長押しで保存できます（表示中のみ）。数字は全角で入力しても半角に直ります。</p>
+  <p class="hint">入れた数字はこの端末に保存され、次に開いたときも残ります。QR画像は長押しで保存できます（表示中のみ）。数字は全角で入力しても半角に直ります。</p>
 </main>
 
 <script>
@@ -2510,15 +2537,9 @@ var qrcode = function() {
 <script>
 (function () {
   var PREFIX = "SHINWA";
-  var input = document.getElementById("num");
-  var img = document.getElementById("qr");
-  var card = document.getElementById("card");
-  var statusEl = document.getElementById("status");
-  var codeEl = document.getElementById("code");
-  var copyBtn = document.getElementById("copy");
+  var STORE_KEY = "shinwa-qr-nums";
   var composing = false;
   var sampleUrl = null;
-  var current = "";
 
   function normalize(s) {
     return s
@@ -2550,66 +2571,99 @@ var qrcode = function() {
     return cv.toDataURL("image/png");
   }
 
-  function update() {
-    var v = normalize(input.value);
-    if (!composing && input.value !== v) input.value = v;
+  // One slot = one input + one QR block, linked by data-slot.
+  var slots = [0, 1].map(function (i) {
+    var inputWrap = document.querySelector('.slot-input[data-slot="' + i + '"]');
+    var block = document.querySelector('.qr-block[data-slot="' + i + '"]');
+    return {
+      input: inputWrap.querySelector("input"),
+      statusEl: inputWrap.querySelector(".status"),
+      card: block.querySelector(".qr-card"),
+      img: block.querySelector("img"),
+      codeEl: block.querySelector(".code"),
+      copyBtn: block.querySelector(".copy"),
+      current: ""
+    };
+  });
+
+  function loadSaved() {
+    try {
+      var a = JSON.parse(localStorage.getItem(STORE_KEY) || "[]");
+      return Array.isArray(a) ? a : [];
+    } catch (e) { return []; }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(slots.map(function (s) { return normalize(s.input.value); })));
+    } catch (e) {}
+  }
+
+  function update(s) {
+    var v = normalize(s.input.value);
+    if (!composing && s.input.value !== v) s.input.value = v;
 
     if (v.length === 4) {
       var text = PREFIX + v;
       var url = makePng(text);
       if (!url) {
-        statusEl.textContent = "QRの部品を読み込めませんでした。ページを開き直してください。";
-        statusEl.dataset.state = "";
+        s.statusEl.textContent = "QRの部品を読み込めませんでした。ページを開き直してください。";
+        s.statusEl.dataset.state = "";
         return;
       }
-      current = text;
-      img.src = url;
-      img.alt = "QRコード（" + text + "）";
-      card.classList.remove("is-sample");
-      codeEl.textContent = text;
-      codeEl.classList.remove("is-empty");
-      copyBtn.disabled = false;
-      statusEl.textContent = "QRを表示しています";
-      statusEl.dataset.state = "ok";
+      s.current = text;
+      s.img.src = url;
+      s.img.alt = "QRコード（" + text + "）";
+      s.card.classList.remove("is-sample");
+      s.codeEl.textContent = text;
+      s.codeEl.classList.remove("is-empty");
+      s.copyBtn.disabled = false;
+      s.statusEl.textContent = "QRを表示しています";
+      s.statusEl.dataset.state = "ok";
       return;
     }
 
-    current = "";
+    s.current = "";
     if (sampleUrl === null) sampleUrl = makePng(PREFIX + "0000") || "";
-    if (sampleUrl) img.src = sampleUrl;
-    img.alt = "入力例のQRコード（SHINWA0000）";
-    card.classList.add("is-sample");
-    codeEl.textContent = PREFIX + v + new Array(5 - v.length).join("_");
-    codeEl.classList.add("is-empty");
-    copyBtn.disabled = true;
-    statusEl.dataset.state = "";
-    statusEl.textContent = v.length === 0 ? "4桁入力するとQRが表示されます" : "あと" + (4 - v.length) + "桁";
+    if (sampleUrl) s.img.src = sampleUrl;
+    s.img.alt = "入力例のQRコード（SHINWA0000）";
+    s.card.classList.add("is-sample");
+    s.codeEl.textContent = PREFIX + v + new Array(5 - v.length).join("_");
+    s.codeEl.classList.add("is-empty");
+    s.copyBtn.disabled = true;
+    s.statusEl.dataset.state = "";
+    s.statusEl.textContent = v.length === 0 ? "4桁入力するとQRが表示されます" : "あと" + (4 - v.length) + "桁";
   }
 
-  input.addEventListener("compositionstart", function () { composing = true; });
-  input.addEventListener("compositionend", function () { composing = false; update(); });
-  input.addEventListener("input", function () { if (!composing) update(); });
+  var saved = loadSaved();
+  slots.forEach(function (s, i) {
+    if (typeof saved[i] === "string") s.input.value = normalize(saved[i]);
 
-  copyBtn.addEventListener("click", function () {
-    if (!current) return;
-    var done = function () {
-      copyBtn.textContent = "コピーしました";
-      setTimeout(function () { copyBtn.textContent = "コピー"; }, 1500);
-    };
-    var fail = function () {
-      var range = document.createRange();
-      range.selectNodeContents(codeEl);
-      var sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-      statusEl.textContent = "自動でコピーできませんでした。選択した文字をコピーしてください。";
-    };
-    try {
-      navigator.clipboard.writeText(current).then(done, fail);
-    } catch (e) { fail(); }
+    s.input.addEventListener("compositionstart", function () { composing = true; });
+    s.input.addEventListener("compositionend", function () { composing = false; update(s); save(); });
+    s.input.addEventListener("input", function () { if (!composing) { update(s); save(); } });
+
+    s.copyBtn.addEventListener("click", function () {
+      if (!s.current) return;
+      var done = function () {
+        s.copyBtn.textContent = "コピーしました";
+        setTimeout(function () { s.copyBtn.textContent = "コピー"; }, 1500);
+      };
+      var fail = function () {
+        var range = document.createRange();
+        range.selectNodeContents(s.codeEl);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        s.statusEl.textContent = "自動でコピーできませんでした。選択した文字をコピーしてください。";
+      };
+      try {
+        navigator.clipboard.writeText(s.current).then(done, fail);
+      } catch (e) { fail(); }
+    });
+
+    update(s);
   });
-
-  update();
 })();
 </script>
 </body>
